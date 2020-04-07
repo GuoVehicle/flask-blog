@@ -1,0 +1,252 @@
+{% extends '__base__.html' %}
+
+{% block title %}日志{% endblock %}
+
+{% block beforehead %}
+<!--音乐播放-->
+<script type="text/javascript">
+
+    var index = 0;
+window.onload=function(){
+    //var index = 0;
+    //var player={
+    //    p0: "Love Story",
+    //    p1: "Back To December",
+    //   p2: "Blank Space"
+    //}
+    document.getElementById('audio').addEventListener("ended",function() {
+        //this.src = "song.php?nocache="+new Date().getTime();
+        if (index == Object.keys(player).length-1){
+            index=0;
+            this.src = "/static/video/"+index+".m4a";
+            this.play();
+            var text="p"+index;
+            document.getElementById('ind').innerText=player[text];
+        }else{
+            index = index+1;
+            this.src = "/static/video/"+index+".m4a";
+            this.play();
+            var text="p"+index;
+            document.getElementById('ind').innerText=player[text];
+        }
+    });
+}
+
+function playOrPaused(id,obj){
+    var audio = document.getElementById('audio');
+    if(audio.paused){
+        audio.play();
+        obj.innerHTML='<i class="uk-icon-pause"></i>';
+        return;
+    }
+    audio.pause();
+    obj.innerHTML='<i class="uk-icon-play"></i>';
+    }
+
+function vol(id,type , obj){
+    if(type == 'up'){
+        var volume = audio.volume  + 0.1;
+        if(volume >=1 ){
+            volume = 1 ;
+
+        }
+        audio.volume =  volume;
+    }else if(type == 'down'){
+        var volume = audio.volume  - 0.1;
+        if(volume <=0 ){
+            volume = 0 ;
+        }
+        audio.volume =  volume;
+    }
+    //document.getElementById('nowVol').innerHTML = returnFloat1(audio.volume);
+}
+
+function returnFloat1(value) {
+    value = Math.round(parseFloat(value) * 10) / 10;
+    if (value.toString().indexOf(".") < 0){
+        value = value.toString() + ".0";
+    }
+    return value;
+}
+
+function playnext(){
+    //var next = document.getElementById('audio').src.slice(-5, -5) + 1;
+    audio.pause();
+    if (index == Object.keys(player).length-1){
+            alert("已经是最后一首了！");
+            index = Object.keys(player).length-1;
+            audio.play();
+        }else{
+            index = index + 1;
+            //audio.currentTime = 0;
+            audio.src= "/static/video/"+index+".m4a";
+            audio.play();
+            var text="p"+index;
+            document.getElementById('ind').innerText=player[text];
+            document.getElementById('playorpause').innerHTML='<i class="uk-icon-pause"></i>';
+    }
+}
+
+function playpre(){
+    //var next = document.getElementById('audio').src.slice(-5, -5) + 1;
+    audio.pause();
+    if (index == 0){
+            alert("已经是第一首了！");
+            index = 0;
+            audio.play();
+        }else{
+            index = index - 1;
+            //audio.currentTime = 0;
+            audio.src= "/static/video/"+index+".m4a";
+            audio.play();
+            var text="p"+index;
+            document.getElementById('ind').innerText=player[text];
+            document.getElementById('playorpause').innerHTML='<i class="uk-icon-pause"></i>';
+    }
+}
+</script>
+
+<!--博客绑定-->
+<script>
+//查询条件
+    var getsortid='{{sortid}}';
+function initVM(data) {
+    console.log(data.blogs);
+    var vm = new Vue({
+        el: '#vm',
+        data: {
+            blogs: data.blogs,
+            page: data.page
+        }
+    });
+    $('#vm').show();
+
+}
+
+$(function() {
+    getJSON('/api/blogs', {
+        page: {{ page_index }},
+        page_size:'5',
+        sortid:getsortid
+    }, function(err, results) {
+        if (err) {
+            return fatal(err);
+        }
+        $('#loading').hide();
+        initVM(results);
+    });
+
+});
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="uk-grid uk-grid-divider" data-uk-grid-match> <!-- match底部，margin非底部 -->
+    <div class="uk-width-medium-3-4 uk-animation-fade"><!-- 淡入动画 -->
+        <div id="loading" class="uk-width-medium-1-1 uk-margin-bottom uk-text-center">
+            <!--<div class="uk-panel uk-panel-box">-->
+                <span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i> 正在加载... </span><hr>
+            <!--</div>-->
+        </div>
+        <div id="vm">
+            <div v-repeat="blog: blogs">
+                <article class="uk-article">
+                    <h1 class="uk-article-title">
+                        <a target="_blank" v-attr="href: '/blog/'+ blog.id" v-text="blog.name"></a>
+                    </h1>
+                    <p class="uk-article-meta" v-text="'作者：'+blog.user_name+' 发表于'+blog.created_at.toDateTime()"></p>
+
+                    <p v-text="blog.summary"></p>
+                    <p>
+                        <a class="uk-button uk-button-primary" target="_blank" v-attr="href: '/blog/'+blog.id"><i class="uk-icon-beer" v-text="' 继续阅读'"></i></a>
+                        <a class="uk-button" target="_blank" v-attr="href: '/blog/'+ blog.id+'#here_comments'"> <i class="uk-icon-comment" v-text="' '+blog.count+'条评论'"></i></a>
+                    </p>
+                    <hr class="uk-article-divider" style="margin-bottom: 20px">
+
+                </article>
+            </div>
+
+           <div v-component="pagination" v-with="page"></div>
+        </div>
+    </div>
+
+
+    <div class="uk-width-medium-1-4 uk-animation-fade">
+    	<div class="uk-cover uk-position-relative">
+            <p class="uk-button-group uk-margin-small-bottom" style="width: 100%;">
+            <a id="pre" class="uk-button uk-width-1-5" href="javascript:void(0);" onclick="playpre();"><i class="uk-icon-backward"></i></a>
+            <a id="playorpause" class="uk-button uk-width-1-5" href="javascript:void(0);" onclick="playOrPaused('firefox',this);"><i class="uk-icon-pause"></i></a>
+            <a id="next" class="uk-button uk-width-1-5" href="javascript:void(0);" onclick="playnext();"><i class="uk-icon-forward"></i></a>
+            <a class="uk-button uk-width-1-5" onclick="vol('firefox' , 'down' ,this )"><i class="uk-icon-volume-down"></i></a>
+            <a class="uk-button uk-width-1-5" id="upVol" onclick="vol('firefox' , 'up' , this )"><i class="uk-icon-volume-up"></i></a>
+            </p>
+            <marquee direction=left scrollamount=3 style="width: 100%; text-align: center; font-size: smaller;"><b>歌曲: </b><b id="ind"></b></marquee>
+
+            <audio id="audio" class="uk-cover-object" style="width:100%; opacity: 0.8;" preload type="audio/mpeg">
+                <!--source src="/static/video/BlankSpace.m4a" type="audio/ogg">
+                <source src="/static/video/BlankSpace.m4a" type="audio/mpeg"-->
+            </audio>
+        </div>
+
+        <script type="text/javascript">
+            document.getElementById('audio').volume = 0.8;
+            //document.getElementById('nowVol').innerHTML = document.getElementById('audio').volume;
+            var player={
+                p0: "牛奶咖啡 - 明天,你好",
+                p1: "薛之谦 - 传说",
+                p2: "薛之谦 - 一半",
+                p3: "周杰伦 - 说好的幸福呢",
+                p4: "Yoko Maria - いつも何度でも“千と千寻の神隠し”より"
+
+            }
+            //index = parseInt(Math.random()*(Object.keys(player).length));
+            index = 0;
+            init_music= "p"+index;
+            document.getElementById('ind').innerText=player[init_music];
+            document.getElementById('audio').src="/static/video/"+index+".m4a";
+            document.getElementById('audio').play();
+            var audio = document.getElementById('audio');
+        </script>
+
+        <div class="uk-panel uk-text-center uk-panel-box">
+        	<img class="uk-border-circle" width="120" height="120" src="/static/img/iam.jpg">
+            <h3>欢迎访问 DK.GUO 的个人博客～</h3>
+            <p>勤于思考!</p>
+        </div>
+
+        <hr class="uk-article-divider">
+        <div class="uk-cover uk-position-relative" style="height: 15vw; ">
+	    	<video width="100%" height="100%" style="object-fit:fill;" loop muted controls="controls">
+			  <source src="/static/video/1.mp4" type="video/mp4">
+			  <source src="/static/video/1.mp4" type="video/ogg">
+			</video>
+		</div>
+    	<hr class="uk-article-divider">
+        <div class="uk-panel">
+            <h3 class="uk-panel-title">文章分类</h3>
+            <ul class="uk-list uk-list-line">
+                <li><i class="uk-icon-tag"></i> <a href="/"> 全部</a></li>
+                {%if sorts%}
+                   {% for sort in sorts%}
+                   <li><i class="uk-icon-tag"></i> <a target="_blank" href="/?sortid={{sort.id}}">{{sort.class_name}} ({{sort.nums}})</a></li>
+
+                   {% endfor%}
+                {% else %}
+                <p>还没有文章</p>
+
+                {% endif %}
+            </ul>
+        </div>
+        <div class="uk-panel">
+            <img alt="我的头像" src="/static/img/gif1.gif" class="img_avatar" width="160" height="180">
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}

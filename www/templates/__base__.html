@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--
+{% macro pagination(url, page) %}
+    <ul class="uk-pagination">
+        {% if page.has_previous %}
+            <li><a href="{{ url }}{{ page.page_index - 1 }}"><i class="uk-icon-angle-double-left"></i></a></li>
+        {% else %}
+            <li class="uk-disabled"><span><i class="uk-icon-angle-double-left"></i></span></li>
+        {% endif %}
+            <li class="uk-active"><span>{{ page.page_index }}</span></li>
+        {% if page.has_next %}
+            <li><a href="{{ url }}{{ page.page_index + 1 }}"><i class="uk-icon-angle-double-right"></i></a></li>
+        {% else %}
+            <li class="uk-disabled"><span><i class="uk-icon-angle-double-right"></i></span></li>
+        {% endif %}
+    </ul>
+{% endmacro %}
+-->
+<html>
+<head>
+    <meta charset="utf-8" />
+    {% block meta %}<!-- block meta  -->{% endblock %}
+    <title>{% block title %} ? {% endblock %} - DK.GUO 个人博客系统</title>
+    <link rel="stylesheet" href="/static/css/uikit.min.css">
+    <link rel="stylesheet" href="/static/css/uikit.gradient.min.css">
+    <link rel="stylesheet" href="/static/css/awesome.css" />
+    <link  rel="stylesheet" href="/static/css/share.css" >
+
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/sha1.min.js"></script>
+    <script src="/static/js/uikit.min.js"></script>
+    <script src="/static/js/sticky.min.js"></script>
+    <script src="/static/js/vue.min.js"></script>
+    <script src="/static/js/awesome.js"></script>
+    {% block beforehead %}<!-- before head  -->{% endblock %}
+</head>
+<body>
+    <div class="uk-container uk-container-center uk-margin-top uk-margin-large-bottom">
+        <nav class="uk-navbar uk-margin-large-bottom">
+            <a href="/" class="uk-navbar-brand">DK.GUO</a>
+            <ul class="uk-navbar-nav">
+                <li data-url="blogs"><a href="/"><i class="uk-icon-home uk-icon-small"></i> 日志</a></li>
+
+                <li class="uk-parent" data-uk-dropdown="{mode:'click'}">
+                	<a><i class="uk-icon-align-left uk-icon-small"></i> 文章分类 <i class="uk-icon-caret-down"></i></a>
+                    <div class="uk-dropdown uk-dropdown-navbar up-dropdown-bottom">
+                        <ul class="uk-nav uk-nav-dropdown">
+                            <li><a target="_blank" href="/"><i class="uk-icon-tag"></i> 全部</a></li>
+                            <li class="uk-nav-header"><i class="uk-icon-tag"></i> Important</li>
+                             {%if sorts%}
+                                   {% for sort in sorts%}
+                                   <li><a target="_blank" href="/?sortid={{sort.id}}"><i class="uk-icon-tag"></i>{{sort.class_name}}</a></li>
+                                   {% endfor%}
+                             {% else %}
+                                <li class="uk-nav-header"><i class="uk-icon-tag"></i> 还没有分类</li>
+                             {% endif %}
+
+                            <li><a target="_blank" href="/blog/topic/else"><i class="uk-icon-tag"></i> 其他</a></li>
+                        </ul>
+                    </div>
+                </li>
+                  <li><a target="_blank" data-uk-modal="{target:'#introduce'}"><i class="uk-icon-microphone uk-icon-small"></i> About DK.GUO</a></li>
+                <!--<li><a target="_blank" href="http://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000"><i class="uk-icon-book"></i> 教程</a></li>-->
+                <!--<li><a target="_blank" href="https://github.com/michaelliao/awesome-python3-webapp"><i class="uk-icon-code"></i> 源码</a></li>-->
+            </ul>
+            <div id="introduce" class="uk-modal">
+                <div class="uk-modal-dialog">
+                <a href="" class="uk-modal-close uk-close"></a>
+                    <h1>Introduce Myself</h1>
+                    <p style="text-align: justify;">
+                        小帅是个大明星，他的哥哥大帅对此深感骄傲，自以为会人缘极好。
+                        可是现实确是相反的。每当大帅介绍自己后，对方总是不屑一顾。<br>
+                        小帅问：你是怎么自我介绍的？<br>
+                        大帅道：你好，我是小帅哥。<br>小帅：……</p>
+                </div>
+            </div>
+
+            <div class="uk-navbar-flip">
+                <ul class="uk-navbar-nav">
+                {% if __user__ %}
+                    <li class="uk-parent" data-uk-dropdown>
+                        <a href="#0"><i class="uk-icon-user"></i> {{ __user__.name }}</a>
+                        <div class="uk-dropdown uk-dropdown-navbar">
+                            <ul class="uk-nav uk-nav-navbar">
+                                <li><a href="/signout"><i class="uk-icon-sign-out"></i> 登出</a></li>
+                                <li><a href="/pwd/{{__user__.id }}"><i class="uk-icon-sign-out"></i> 重置密码</a></li>
+                                <li><a href="/user/{{__user__.id }}"><i class="uk-icon-sign-out"></i> 修改个人信息</a></li>
+                                {% if __user__.admin%}
+                                <li><a href="/manage/blogs"><i class="uk-icon-sign-out"></i> 管理中心</a></li>
+                                {%endif%}
+                            </ul>
+                        </div>
+                    </li>
+                {% else %}
+                    <li><a href="/signin"><i class="uk-icon-sign-in"></i> 登陆</a></li>
+                    <li><a href="/register"><i class="uk-icon-edit"></i> 注册</a></li>
+                {% endif %}
+                </ul>
+            </div>
+
+    </nav>
+  </div>
+    <div class="uk-container uk-container-center">
+        <div class="uk-grid">
+            <!-- content -->
+            {% block content %}
+            {% endblock %}
+            <!-- // content -->
+        </div>
+    </div>
+
+    <div class="uk-margin-large-top" style="background-color:#eee; border-top:1px solid #ccc;">
+        <div class="uk-container uk-container-center uk-text-center">
+            <div class="uk-panel uk-margin-top uk-margin-bottom">
+                <p>
+
+                    <a target="_blank" href="http://weibo.com/VehicleGuo" class="uk-icon-button uk-icon-weibo"></a>
+                    <a target="_blank" href="https://github.com/GuoVehicle" class="uk-icon-button uk-icon-github"></a>
+
+                    <a target="_blank" href="https://youtube.com/" class="uk-icon-button uk-icon-youtube"></a>
+                </p>
+                <p>Powered by <a href="http://awesome.liaoxuefeng.com">DK.GUO Python Webapp</a>. Copyright &copy; 2014. [<a href="/manage/" target="_blank">Manage</a>]</p>
+                <p><a href="http://www.liaoxuefeng.com/" target="_blank">DK.GUO</a>. All rights reserved.</p>
+                <a target="_blank" href="http://www.w3.org/TR/html5/"><i class="uk-icon-html5" style="font-size:64px; color: #444;"></i></a>
+            </div>
+
+        </div>
+    </div>
+        <div id="footer">
+             <div class="share-demo hide" id="demo">
+            <a href="javascript:void(0)" class="share"><img src="/static/img/share2/share-ico.png" /></a>
+        </div>
+        </div>
+<!-- 分享 -->
+
+    <script type="text/javascript" src="/static/js/share.js"></script>
+    <script type="text/javascript">
+	$('.share').shareConfig({
+		Shade : true, //是否显示遮罩层
+		Event:'click', //触发事件
+		Content : 'Share', //内容DIV ID
+		Title : '技术改变思想改变技术' //显示标题
+	});
+    </script>
+    <!--分享 -->
+    <!--右边回到顶部 填充-->
+    <script type="text/javascript">
+        var gotopcode = " \
+  <div class=\"gotop hide\" id=\"gotop\">\
+   <a href=\"javascript:;\" class=\"jb51-weixin\"></a>\
+  <div class=\"jb51-weixin-con hide\"> \
+    <h6 class=\"jb51-weixin-title\">微信扫一扫</h6>\
+    <div class=\"jb51-weixin-pic\"> <img src=\"/static/img/weixin.jpg\" alt=\"微信账号\" width=\"100\" height=\"100\"> </div>\
+  </div>\
+   <div class=\"jb51-zhifu-con hide\">\
+    <h6 class=\"jb51-zhifu-title\">扫描二维码打赏</h6>\
+    <div class=\"jb51-zhifu-pic\"> <img src=\"/static/img/zhifubao.jpg\" alt=\"支付宝\" width=\"100\" height=\"100\"> </div>\
+  </div>\
+  <a href=\"#\"  class=\"question\"><img src=\"/img/hot.gif\" alt=\"hot\"></a>\
+  <a href=\"javascript:;\" class=\"go\"></a>\
+  </div>"
+        $('#footer').append(gotopcode);
+        $(function () {
+            $(window).on('scroll', function () {
+                var st = $(document).scrollTop();
+                if (st > 0) {
+                    if ($('#contents').length != 0) {
+                        var w = $(window).width(), mw = $('#contents').width();
+                        if ((w - mw) / 2 > 70)
+                            $('#gotop').css({ 'left': (w - mw) / 2 + mw + 20 });
+                        else {
+                            $('#gotop').css({ 'left': 'auto' });
+                        }
+                    }
+                    $('#gotop').fadeIn(function () {
+                        $(this).removeClass('hide');
+                    });
+                    $('#demo').fadeIn(function () {
+                        $(this).removeClass('hide');
+                    });
+                } else {
+                    $('#gotop').fadeOut(function () {
+                        $(this).addClass('hide');
+                    });
+                    $('#demo').fadeIn(function () {
+                        $(this).addClass('hide');
+                    });
+                }
+            });
+            $('#gotop .go').on('click', function () {
+                $('html,body').animate({ 'scrollTop': 0 }, 500);
+            });
+
+            $('#gotop .jb51-weixin').hover(function () {
+                $('#gotop .jb51-weixin-con').removeClass('hide');
+            }, function () {
+                $('#gotop .jb51-weixin-con').addClass('hide');
+            });
+              $('#gotop .question').hover(function () {
+                $('#gotop .jb51-zhifu-con').removeClass('hide');
+            }, function () {
+                $('#gotop .jb51-zhifu-con').addClass('hide');
+            });
+        });
+
+    </script>
+<script>
+<!--线条特效-->
+!function(){
+
+function n(n,e,t){
+
+return n.getAttribute(e)||t
+
+}
+
+function e(n){
+
+return document.getElementsByTagName(n)
+
+}
+
+function t(){
+
+var t=e("script"),o=t.length,i=t[o-1];
+
+return{
+
+l:o,z:n(i,"zIndex",-1),o:n(i,"opacity",.5),c:n(i,"color","0,0,0"),n:n(i,"count",99)
+
+}
+
+}
+
+function o(){
+
+a=m.width=window.innerWidth||document.documentElement.clientWidth||document.body.clientWidth,
+
+c=m.height=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight
+
+}
+
+function i(){
+
+r.clearRect(0,0,a,c);
+
+var n,e,t,o,m,l;
+
+s.forEach(function(i,x){
+
+for(i.x+=i.xa,i.y+=i.ya,i.xa*=i.x>a||i.x<0?-1:1,i.ya*=i.y>c||i.y<0?-1:1,r.fillRect(i.x-.5,i.y-.5,1,1),e=x+1;e<u.length;e++)n=u[e],
+
+null!==n.x&&null!==n.y&&(o=i.x-n.x,m=i.y-n.y,
+
+l=o*o+m*m,l<n.max&&(n===y&&l>=n.max/2&&(i.x-=.03*o,i.y-=.03*m),
+
+t=(n.max-l)/n.max,r.beginPath(),r.lineWidth=t/2,r.strokeStyle="rgba("+d.c+","+(t+.2)+")",r.moveTo(i.x,i.y),r.lineTo(n.x,n.y),r.stroke()))
+
+}),
+
+x(i)
+
+}
+
+var a,c,u,m=document.createElement("canvas"),
+
+d=t(),l="c_n"+d.l,r=m.getContext("2d"),
+
+x=window.requestAnimationFrame||window.webkitRequestAnimationFrame||window.mozRequestAnimationFrame||window.oRequestAnimationFrame||window.msRequestAnimationFrame||
+
+function(n){
+
+window.setTimeout(n,1e3/45)
+
+},
+
+w=Math.random,y={x:null,y:null,max:2e4};m.id=l,m.style.cssText="position:fixed;top:0;left:0;z-index:"+d.z+";opacity:"+d.o,e("body")[0].appendChild(m),o(),window.onresize=o,
+
+window.onmousemove=function(n){
+
+n=n||window.event,y.x=n.clientX,y.y=n.clientY
+
+},
+
+window.onmouseout=function(){
+
+y.x=null,y.y=null
+
+};
+
+for(var s=[],f=0;d.n>f;f++){
+
+var h=w()*a,g=w()*c,v=2*w()-1,p=2*w()-1;s.push({x:h,y:g,xa:v,ya:p,max:6e3})
+
+}
+
+u=s.concat([y]),
+
+setTimeout(function(){i()},100)
+
+}();
+
+</script>
+<script type="text/javascript">
+/* 鼠标特效 */
+var a_idx = 0;
+jQuery(document).ready(function($) {
+    $("body").click(function(e) {
+        var a = new Array("❤富强❤","❤民主❤","❤文明❤","❤和谐❤","❤自由❤","❤平等❤","❤公正❤","❤法治❤","❤爱国❤","❤敬业❤","❤诚信❤","❤友善❤");
+        var $i = $("<span></span>").text(a[a_idx]);
+        a_idx = (a_idx + 1) % a.length;
+        var x = e.pageX,
+        y = e.pageY;
+        $i.css({
+            "z-index": 999999999999999999999999999999999999999999999999999999999999999999999,
+            "top": y - 20,
+            "left": x,
+            "position": "absolute",
+            "font-weight": "bold",
+            "color": "rgb("+~~(255*Math.random())+","+~~(255*Math.random())+","+~~(255*Math.random())+")"
+        });
+        $("body").append($i);
+        $i.animate({
+            "top": y - 180,
+            "opacity": 0
+        },
+        1500,
+        function() {
+            $i.remove();
+        });
+    });
+});
+</script>
+
+</body>
+</html>
